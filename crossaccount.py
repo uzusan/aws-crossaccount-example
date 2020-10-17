@@ -29,6 +29,8 @@ else:
 # Create a new boto3 session using the passed in profile
 session = boto3.Session(profile_name = profile)
 
+# Use try / except with the boto3 ClientError exception to catch errors from AWS, such as AccessDenied
+# This allows us to provide feedback if the roles or access is not correct (or take other actions)
 try: 
 	# Use the session to call Secure token Service and assume the role.
 	# This allows us to assume the role in the target account and use the permissions attached to it
@@ -43,6 +45,7 @@ except ClientError as error:
 	print("Error Assuming Role. Error code:", errorcode)
 	sys.exit()
 
+# Get our new temporary credentials. Checking each key is present just to ensure we have what we need
 if ("Credentials" in sts_response):
 	credentials = sts_response["Credentials"]
 	if ("AccessKeyId" in credentials):
@@ -56,7 +59,10 @@ if (not temporary_access_key or not temporary_secret_key or not temporary_token)
 	print("Error getting Temporary Credentials")
 	sys.exit()
 
+# Now we have credentials we can use boto3 as normal and we have the access level attached to the role in the target account
+# as an example, for a role set up with the AmazonS3ReadOnlyAccess policy, we can list s3 buckets
 try:
+	# First we get a new s3 client, passing the temporary credentials in
 	s3_client = session.client(
 		's3',
 		region_name = "eu-west-1",
@@ -70,6 +76,9 @@ except ClientError as error:
 	sys.exit()
 
 try:
+	# next we list the buckets. Note that even though we are using the endpoint above in eu-west-1
+	# s3 is global, so list buckets will return all buckets.
+	# to get just one region, you can call get_bucket_location on each bucket returned and filter by the LocationConstraint 
 	response = s3_client.list_buckets()
 except ClientError as error:
 	errorcode = error.response['Error']['Code']
