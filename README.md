@@ -4,6 +4,8 @@ Cross Account Access example
 
 This example python script (crossaccount.py) shows an example of using an IAM user in one account to assume a role in another and use the permissions attached to that role.
 
+I've also done a writeup on Cross Account roles using this code as [a blog post](https://blog.johnwalker.tech/aws-cross-account-role-access-using-python)
+
 To use:
 
 prerequisites: python3, pip3
